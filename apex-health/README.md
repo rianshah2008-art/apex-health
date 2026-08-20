@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Apex Health
 
-## Getting Started
+A personal health dashboard that pulls vitals, training and recovery data from Garmin
+Connect and layers on manual weight, hydration and nutrition tracking with an AI
+photo-based meal scanner.
 
-First, run the development server:
+## Stack
+
+| Layer      | Choice                                                            |
+| ---------- | ----------------------------------------------------------------- |
+| Frontend   | Next.js 16 (App Router, Turbopack) on Vercel                      |
+| Backend/DB | Convex (schema, queries, mutations, actions, crons, file storage) |
+| Auth       | Convex Auth (email + password)                                    |
+| Styling    | Tailwind CSS v4                                                   |
+| Charts     | Recharts                                                          |
+| Meal AI    | Ollama Cloud vision model, called from a Convex action            |
+
+## Local development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npx convex dev     # terminal 1 — pushes schema/functions, watches for changes
+npm run dev        # terminal 2 — http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.local` holds `CONVEX_DEPLOYMENT` and `NEXT_PUBLIC_CONVEX_URL` and is written by
+`npx convex dev`. It is gitignored.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Convex deployment environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+These live on the Convex deployment (dashboard → Settings → Environment Variables), not in
+`.env.local`, because Convex actions run on Convex's servers.
 
-## Learn More
+| Variable                       | Set by                             | Purpose                             |
+| ------------------------------ | ---------------------------------- | ----------------------------------- |
+| `SITE_URL`                     | `npx @convex-dev/auth`             | Auth redirect origin                |
+| `JWT_PRIVATE_KEY`              | `npx @convex-dev/auth`             | Signs session JWTs                  |
+| `JWKS`                         | `npx @convex-dev/auth`             | Public keys for JWT verification    |
+| `GARMIN_EMAIL`                 | you                                | Garmin Connect login                |
+| `GARMIN_PASSWORD`              | you                                | Garmin Connect login                |
+| `OLLAMA_API_KEY`               | you                                | Ollama Cloud meal scanner           |
 
-To learn more about Next.js, take a look at the following resources:
+Set one with:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npx convex env set OLLAMA_API_KEY sk-...
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploying to Vercel
 
-## Deploy on Vercel
+Import the repository in Vercel and override the build command so that Convex functions
+deploy alongside the frontend:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Build Command:** `npx convex deploy --cmd 'npm run build'`
+- **Environment Variables:** `CONVEX_DEPLOY_KEY` (generate a production deploy key from the
+  Convex dashboard). `NEXT_PUBLIC_CONVEX_URL` is injected automatically by `convex deploy`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+After the first production deploy, point the production Convex deployment's `SITE_URL` at
+the Vercel URL:
+
+```bash
+npx convex env set SITE_URL https://your-app.vercel.app --prod
+```
+
+## Project layout
+
+```
+app/                  Next.js App Router pages
+  login/              Convex Auth sign-in / sign-up
+  dashboard/          Persistent nav shell
+    vitals/           Section 1 — Daily Vitals
+    recovery/         Section 2 — Recovery & Readiness
+    training/         Section 3 — Training Performance
+    nutrition/        Section 4 — Weight, Hydration & Nutrition
+components/           Shared UI (MetricCard, ProgressBar, charts, …)
+convex/               Schema, queries, mutations, actions, crons
+lib/                  Framework-agnostic client helpers
+proxy.ts              Route protection (Next.js 16 replacement for middleware.ts)
+```

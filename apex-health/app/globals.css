@@ -1,26 +1,30 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --color-apex-bg: #0a0e1a;
+  --color-apex-card: #0f1420;
+  --color-apex-card-alt: #111827;
+  --color-apex-border: #1e293b;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-apex-cyan: #38bdf8;
+  --color-apex-cyan-bright: #22d3ee;
+  --color-apex-amber: #f59e0b;
+  --color-apex-green: #34d399;
+  --color-apex-purple: #a78bfa;
+  --color-apex-indigo: #6366f1;
+  --color-apex-red: #ef4444;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background-color: var(--color-apex-bg);
+  color: #e2e8f0;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Charts render on dark cards; keep default focus rings visible against them. */
+* {
+  outline-color: var(--color-apex-cyan);
 }
