@@ -16,7 +16,8 @@ const analyzeFailureValidator = v.object({
   rawText: v.string(),
 });
 
-const OLLAMA_MODELS = ["qwen2.5vl", "llama3.2-vision"] as const;
+/** Ollama Cloud vision models (local-only names like llama3.2-vision 404 here). */
+const OLLAMA_MODELS = ["gemma4:31b"] as const;
 
 const MEAL_PROMPT =
   'Identify the food in this image and estimate total calories and grams of protein for the full portion shown. Respond with ONLY strict JSON, no other text: {"description": string, "calories": number, "proteinG": number}';
